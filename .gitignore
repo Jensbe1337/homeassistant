@@ -1,0 +1,39 @@
+# Home Assistant .gitignore
+
+# Secrets and sensitive data
+secrets.yaml
+*.db
+*.db-shm
+*.db-wal
+
+# ESPHome secrets
+secrets.yaml
+!esphome/secrets.yaml.example
+
+# Home Assistant runtime files
+.HA_VERSION
+.uuid
+.storage/
+.cloud/
+
+# Log files
+*.log
+home-assistant.log*
+
+# Backup files
+*.backup
+*.bak
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+
+# ESPHome
+esphome/secrets.yaml
+esphome/.esphome/
+esphome/
+*.bin
+*.elf
