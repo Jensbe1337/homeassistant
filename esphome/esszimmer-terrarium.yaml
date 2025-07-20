@@ -1,0 +1,78 @@
+esphome:
+  name: esszimmer-terrarium
+  friendly_name: Esszimmer - Terrarium
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "Q3g/gYEmmlW9LuZ548I+wAKaNJXQNHTWqOeDuegxNOs="
+
+ota:
+  - platform: esphome
+    password: "b7b9d26abeacecdd4b525bd24d9978d3"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esszimmer-Terrarium"
+    password: "raIRvbxeb4MS"
+
+captive_portal:
+
+one_wire:
+ - id: DS18B20
+   platform: gpio
+   pin:
+    number: GPIO2
+    mode:
+      input: true
+      pullup: true
+# 0x8d000000391f1028
+# 0xe3025e730a646128
+
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: true
+  id: AM2315C
+
+
+sensor:
+  - platform: dallas_temp
+    address: 0x8d000000391f1028
+    one_wire_id: DS18B20
+    name: "Rueckwand"
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-plus"
+    device_class: "temperature"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    update_interval: 20s
+  - platform: dallas_temp
+    address: 0xe3025e730a646128
+    one_wire_id: DS18B20
+    name: "Substrat"
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-minus"
+    device_class: "temperature"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    update_interval: 20s
+
+
+  - platform: am2315c
+    temperature:
+      name: "Lufttemperatur"
+    humidity:
+      name: "Luftfeuchtigkeit"
+    update_interval: 20s
+
