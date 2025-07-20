@@ -1,23 +1,76 @@
 - sensor:
+    # =============================================================================
+    # NETZ-LEISTUNG SENSOREN
+    # =============================================================================
+    
+    # Leistung die aus dem Netz bezogen wird (positive Werte)
     - name: "dashboard_leistung_aus_netz"
       unique_id: "dashboard_leistung_aus_netz"
       unit_of_measurement: "W"
+      device_class: "power"
+      state_class: "measurement"
       state: >
         {% set raw = states('sensor.stromzaehler_leistung_aktuell') %}
-        {% set val = (raw | float(0)) %}
         {% if raw in ['unknown', 'unavailable', None] %}
-          0
+          unavailable
         {% else %}
-          {{ val if val > 0 else 0 }}
+          {% set val = raw | float(0) %}
+          {{ [val, 0] | max | round(1) }}
         {% endif %}
+    
+    # Leistung die ins Netz eingespeist wird (negative Werte als Absolutwert)
     - name: "dashboard_leistung_ins_netz"
       unique_id: "dashboard_leistung_ins_netz"
       unit_of_measurement: "W"
+      device_class: "power"
+      state_class: "measurement"
       state: >
         {% set raw = states('sensor.stromzaehler_leistung_aktuell') %}
-        {% set val = (raw | float(0)) %}
         {% if raw in ['unknown', 'unavailable', None] %}
-          0
+          unavailable
         {% else %}
-          {{ (val | abs) if val < 0 else 0 }}
+          {% set val = raw | float(0) %}
+          {{ (val | abs) if val < 0 else 0 | round(1) }}
+        {% endif %}
+    
+    # =============================================================================
+    # VERBRAUCH BERECHNUNG
+    # =============================================================================
+    
+    # Aktueller Hausverbrauch basierend auf Netz- und Solardaten
+    - name: "dashboard_verbrauch_aktuell"
+      unique_id: "dashboard_verbrauch_aktuell"
+      unit_of_measurement: "W"
+      device_class: "power"
+      state_class: "measurement"
+      state: >
+        {# Alle benötigten Sensordaten einlesen #}
+        {% set ins_netz_raw = states('sensor.dashboard_leistung_ins_netz') %}
+        {% set aus_netz_raw = states('sensor.dashboard_leistung_aus_netz') %}
+        {% set solar_total_raw = states('sensor.solar_leistung_total') %}
+        
+        {# Validierung: Alle Sensoren müssen verfügbar sein #}
+        {% if ins_netz_raw in ['unknown', 'unavailable', None] or 
+              aus_netz_raw in ['unknown', 'unavailable', None] or 
+              solar_total_raw in ['unknown', 'unavailable', None] %}
+          unavailable
+        {% else %}
+          {# Werte zu Zahlen konvertieren #}
+          {% set ins_netz = ins_netz_raw | float(0) %}
+          {% set aus_netz = aus_netz_raw | float(0) %}
+          {% set solar_total = solar_total_raw | float(0) %}
+          
+          {# Verbrauchsberechnung je nach Netz-Situation #}
+          {% if ins_netz > 0 %}
+            {# Fall: Netzeinspeisung aktiv #}
+            {# Verbrauch = Solarproduktion - Einspeisung #}
+            {% set verbrauch = solar_total - ins_netz %}
+          {% else %}
+            {# Fall: Netzbezug aktiv #}
+            {# Verbrauch = Netzbezug + Solarproduktion #}
+            {% set verbrauch = aus_netz + solar_total %}
+          {% endif %}
+          
+          {# Ergebnis: Niemals negative Werte #}
+          {{ [verbrauch, 0] | max | round(1) }}
         {% endif %}
