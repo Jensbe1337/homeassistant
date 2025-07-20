@@ -1,0 +1,48 @@
+esphome:
+  name: test-verbrauch
+  friendly_name: TEST VERBRAUCH
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "ti+/LP5IB0o8ouNxx5gBf/urJLMScfmnQ4q606Q5uHE="
+
+ota:
+  - platform: esphome
+    password: "4d20a0cbf73d43dbe8672babc81f785a"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Test-Verbrauch Fallback Hotspot"
+    password: "9l84zmZc6P1H"
+
+captive_portal:
+
+sensor:
+
+- platform: pulse_meter
+  pin: GPIO12
+  name: "Water Pulse Meter"
+  unit_of_measurement: "liter/min"
+  icon: "mdi:water"
+  total:
+    name: "Water Meter Total"
+    unit_of_measurement: "m³"
+    id: water_meter_total
+    accuracy_decimals: 3
+    device_class: water
+    state_class: total_increasing
+    filters:
+      - multiply: 0.001
+
+  
