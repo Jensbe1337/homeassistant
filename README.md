@@ -23,6 +23,12 @@ Meine persönliche Home Assistant Konfiguration bietet:
 - **🎨 Angepasste Templates**: Erweiterte Sensoren für Dashboard-Darstellung
 - **📡 MQTT-Integration**: Echtzeit-Datenübertragung von externen Geräten
 
+### 🌐 Zugriff auf Home Assistant
+
+Die Home Assistant-Instanz ist über folgende URLs erreichbar:
+- **IP-Adresse**: `http://192.168.1.21:8123`
+- **Lokaler Hostname**: `http://homeassistant.local:8123`
+
 ## 🏗️ Struktur
 
 ```
@@ -114,7 +120,7 @@ Stellen Sie sicher, dass Ihr MQTT-Broker konfiguriert ist:
 
 ```yaml
 mqtt:
-  broker: YOUR_MQTT_BROKER_IP
+  broker: 192.168.1.21  # Home Assistant IP
   port: 1883
   username: YOUR_USERNAME
   password: YOUR_PASSWORD
