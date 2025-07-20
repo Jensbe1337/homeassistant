@@ -389,9 +389,9 @@
   mode: single
 - id: '1752820753054'
   alias: STR Solarladen Erna
-  description: Schaltet die Wallbox ein, wenn Solarladen aktiviert ist und der Stromzähler
-    im Schnitt -1000 W oder weniger anzeigt. Schaltet die Wallbox aus, wenn eine der
-    Abschaltbedingungen erfüllt ist.
+  description: Schaltet die Wallbox ein, wenn Solarladen aktiviert ist und der Durchschnitt
+    der letzten 10 Minuten genügend Solarüberschuss zeigt. Schaltet ab bei zu geringem
+    Überschuss, vollem Akku oder wenn kein Auto lädt.
   triggers:
   - seconds: /30
     trigger: time_pattern
@@ -399,12 +399,6 @@
   - condition: state
     entity_id: input_boolean.solarladen_erna
     state: 'on'
-  - condition: template
-    value_template: "{% set avg = states('sensor.stromzaehler_leistung_aktuell') |
-      float(0) %} {% set history = state_attr('sensor.stromzaehler_leistung_aktuell',
-      'history') %} {% if history %}\n  {% set mean = (history[-10:] | map(attribute='state')
-      | map('float') | sum) / (history[-10:] | count) %}\n  {{ mean <= -1000 }}\n{%
-      else %}\n  {{ avg <= -1000 }}\n{% endif %}\n"
   actions:
   - choose:
     - conditions:
@@ -414,11 +408,13 @@
           entity_id: sensor.garage_mobile_wallbox_switch_0_power
           below: 50
         - condition: template
-          value_template: "{% set avg = states('sensor.stromzaehler_leistung_aktuell')
-            | float(0) %} {% set history = state_attr('sensor.stromzaehler_leistung_aktuell',
-            'history') %} {% if history %}\n  {% set mean = (history[-10:] | map(attribute='state')
-            | map('float') | sum) / (history[-10:] | count) %}\n  {{ mean > 1000 }}\n{%
-            else %}\n  {{ avg > 1000 }}\n{% endif %}\n"
+          value_template: "{% set history = states.sensor.stromzaehler_leistung_aktuell.history(hours=0, minutes=10) %}
+            {% if history | length > 0 %}
+              {% set avg = history | map(attribute='state') | map('float', 0) | list | average %}
+              {{ avg > 1000 }}
+            {% else %}
+              {{ states('sensor.stromzaehler_leistung_aktuell') | float(0) > 1000 }}
+            {% endif %}"
         - condition: numeric_state
           entity_id: sensor.erna_battery_level
           above: 80
@@ -426,11 +422,35 @@
       - target:
           entity_id: switch.garage_mobile_wallbox_switch_0
         action: switch.turn_off
-    - conditions: []
+    - conditions:
+      - condition: template
+        value_template: "{% set history = states.sensor.stromzaehler_leistung_aktuell.history(hours=0, minutes=10) %}
+          {% if history | length > 0 %}
+            {% set avg = history | map(attribute='state') | map('float', 0) | list | average %}
+            {{ avg < -1500 }}
+          {% else %}
+            {{ states('sensor.stromzaehler_leistung_aktuell') | float(0) < -1500 }}
+          {% endif %}"
       sequence:
       - target:
           entity_id: switch.garage_mobile_wallbox_switch_0
         action: switch.turn_on
+      - action: automation.turn_off
+        metadata: {}
+        data:
+          stop_actions: false
+        target:
+          entity_id: automation.str_solarladen_erna
+      - delay:
+          hours: 0
+          minutes: 10
+          seconds: 0
+          milliseconds: 0
+      - action: automation.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: automation.str_solarladen_erna
   mode: single
 - id: '1752961679193'
   alias: STR Badezimmerlicht Automatik
