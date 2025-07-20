@@ -1,0 +1,79 @@
+- sensor:
+
+    # -----------------------------------------------------------------------
+    # Stromzähler: Energie- und Leistungswerte
+    # -----------------------------------------------------------------------
+    - name: "Stromzaehler Energie Einspeisung total"
+      unique_id: stromzaehler_energie_einspeisung_total
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total
+      state: >
+        {{ states('sensor.stromzahler_e320_total_out') | float(0) }}
+
+    - name: "Stromzaehler Energie Netz total"
+      unique_id: stromzaehler_energie_netze_total
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total
+      state: >
+        {{ states('sensor.stromzahler_e320_total_in') | float(0) }}
+
+    - name: "Stromzaehler Leistung aktuell"
+      unique_id: stromzaehler_leistung_aktuell
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      state: >
+        {{ states('sensor.stromzahler_e320_power_in') | float(0) }}
+
+    # -----------------------------------------------------------------------
+    # Heizungs-Thermostate: Soll-Temperaturen für verschiedene Räume
+    # -----------------------------------------------------------------------
+    - name: "EG Wohnzimmer Heizung Soll-Temperatur"
+      unique_id: eg_wohnzimmer_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.eg_wohnzimmer_heizung', 'temperature') }}
+
+    - name: "EG Gästebad Heizung Soll-Temperatur"
+      unique_id: eg_gaestebad_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.eg_gaestebad_heizung', 'temperature') }}
+
+    - name: "1OG Bad Heizung Soll-Temperatur"
+      unique_id: 1og_bad_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.1og_bad_heizung', 'temperature') }}
+
+    - name: "1OG Arbeitszimmer Heizung Soll-Temperatur"
+      unique_id: 1og_arbeitszimmer_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.1og_arbeitszimmer_heizung', 'temperature') }}
+
+    - name: "1OG Schlafzimmer Heizung Soll-Temperatur"
+      unique_id: 1og_schlafzimmer_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.1og_schlafzimmer_heizung', 'temperature') }}
+
+    - name: "1OG Ankleide Heizung Soll-Temperatur"
+      unique_id: 1og_ankleide_heizung_soll_temperatur
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >
+        {{ state_attr('climate.1og_ankleide_heizung', 'temperature') }}

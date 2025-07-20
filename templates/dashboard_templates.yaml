@@ -1,0 +1,23 @@
+- sensor:
+    - name: "dashboard_leistung_aus_netz"
+      unique_id: "dashboard_leistung_aus_netz"
+      unit_of_measurement: "W"
+      state: >
+        {% set raw = states('sensor.stromzaehler_leistung_aktuell') %}
+        {% set val = (raw | float(0)) %}
+        {% if raw in ['unknown', 'unavailable', None] %}
+          0
+        {% else %}
+          {{ val if val > 0 else 0 }}
+        {% endif %}
+    - name: "dashboard_leistung_ins_netz"
+      unique_id: "dashboard_leistung_ins_netz"
+      unit_of_measurement: "W"
+      state: >
+        {% set raw = states('sensor.stromzaehler_leistung_aktuell') %}
+        {% set val = (raw | float(0)) %}
+        {% if raw in ['unknown', 'unavailable', None] %}
+          0
+        {% else %}
+          {{ (val | abs) if val < 0 else 0 }}
+        {% endif %}

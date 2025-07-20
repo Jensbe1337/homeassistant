@@ -1,0 +1,84 @@
+- sensor:
+    # ======================================================
+    # Gesamtleistung aus beiden Solaranlagen (Garage + Dach)
+    # ======================================================
+    - name: "Solar Leistung total"
+      unique_id: solar_leistung_total
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      state: >
+        {# Summiert die aktuellen Werte der beiden Solarsensoren. #}
+        {# Ignoriert Sensoren, wenn Wert 'unavailable', 'unknown' oder älter als 5 Sekunden ist. #}
+
+        {% set now = as_timestamp(now()) %}
+
+        {# Garage #}
+        {% set s1 = states('sensor.solar_leistung_garage_aktuell') | float(0) %}
+        {% set s1_time = as_timestamp(states.sensor.solar_leistung_garage_aktuell.last_updated) %}
+        {% if states('sensor.solar_leistung_garage_aktuell') in ['unavailable', 'unknown'] or now - s1_time > 10 %}
+          {% set s1 = 0 %}
+        {% endif %}
+
+        {# Dach #}
+        {% set s2 = states('sensor.solarnet_pv_leistung') | float(0) %}
+        {% set s2_time = as_timestamp(states.sensor.solarnet_pv_leistung.last_updated) %}
+        {% if states('sensor.solarnet_pv_leistung') in ['unavailable', 'unknown'] or now - s2_time > 10 %}
+          {% set s2 = 0 %}
+        {% endif %}
+
+        {{ s1 + s2 }}
+
+    # ==========================================================
+    # Gewichteter zukünftiger Spitzenleistungszeitpunkt (heute)
+    # ==========================================================
+    - name: "Solar Spitzenleistungszeitpunkt heute total"
+      device_class: timestamp
+      state: >
+        {# Holt die drei erwarteten Spitzenleistungszeitpunkte (Peaks) und ihre Gewichtung #}
+
+        {% set now = now() %}
+        {% set t1 = as_datetime(states('sensor.power_highest_peak_time_today')) %}
+        {% set t2 = as_datetime(states('sensor.power_highest_peak_time_today_2')) %}
+        {% set t3 = as_datetime(states('sensor.power_highest_peak_time_today_3')) %}
+        {% set w1 = 7650 %}
+        {% set w2 = 2250 %}
+        {% set w3 = 600 %}
+
+        {# Multipliziert jeden Peak-Timestamp mit Gewicht, sofern er in der Zukunft liegt #}
+        {% set unix_times = [
+            (t1.timestamp() * w1) if t1 and t1 > now else 0,
+            (t2.timestamp() * w2) if t2 and t2 > now else 0,
+            (t3.timestamp() * w3) if t3 and t3 > now else 0
+        ] %}
+
+        {# Erzeuge Gewichtsliste passend zu den Peaks #}
+        {% set weights = [
+            w1 if t1 and t1 > now else 0,
+            w2 if t2 and t2 > now else 0,
+            w3 if t3 and t3 > now else 0
+        ] %}
+        {% set total_weight = weights | sum %}
+
+        {# Gib gewichteten Mittelwert als Zeitstempel zurück, falls mindestens ein Peak zukünftig ist #}
+        {% if total_weight > 0 %}
+          {% set weighted_avg = (unix_times | sum) / total_weight %}
+          {{ weighted_avg | timestamp_custom('%Y-%m-%dT%H:%M:%S%z', false) }}
+        {% else %}
+          none
+        {% endif %}
+
+
+    # ======================================================
+    # Gesamtproduktion morgen aus drei Energiesensoren
+    # ======================================================
+    - name: "Energieproduktion morgen total"
+      unique_id: energy_production_tomorrow_total
+      unit_of_measurement: "kWh"
+      state: >
+        {# Summe der drei Sensors für die Energieproduktion morgen. #}
+        {{
+          (states('sensor.energy_production_tomorrow') | float(0)) +
+          (states('sensor.energy_production_tomorrow_2') | float(0)) +
+          (states('sensor.energy_production_tomorrow_3') | float(0))
+        }}

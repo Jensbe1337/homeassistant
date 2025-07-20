@@ -1,0 +1,80 @@
+# =============================================================================
+# HOME ASSISTANT KONFIGURATION
+# =============================================================================
+# 
+# Hauptkonfiguration für Home Assistant
+# 
+# 📁 STRUKTUR:
+#   🏠 Standard-Integrationen & Themes
+#   ⚙️  Automatisierungen, Skripte, Szenen, Anpassungen  
+#   📊 Template-Sensoren (Solar, Stromzähler, Heizung)
+#   📡 MQTT-Sensoren (Solardaten)
+#   📈 Utility Meter (Verbrauchsmessungen)
+#
+# ⚠️  WICHTIG: Nach Änderungen immer Konfiguration im Home Assistant UI prüfen!
+# 
+# =============================================================================
+
+
+# =============================================================================
+# 🏠 STANDARD-INTEGRATIONEN
+# =============================================================================
+
+# Lädt alle Standard-Home Assistant Integrationen
+default_config:
+
+
+# =============================================================================
+# 🎨 FRONTEND & THEMES
+# =============================================================================
+
+# Frontend-Konfiguration mit Theme-Support
+frontend:
+  themes: !include_dir_merge_named themes/
+
+
+# =============================================================================
+# ⚙️ ANPASSUNGEN
+# =============================================================================
+
+# Zentrale Home Assistant Einstellungen
+homeassistant:
+  customize: !include customize.yaml
+
+
+# =============================================================================
+# 📄 EXTERNE KONFIGURATIONSDATEIEN
+# =============================================================================
+
+# Automatisierungen (YAML-Modus)
+automation: !include automations.yaml
+
+# Skripte für wiederverwendbare Aktionen
+script: !include scripts.yaml
+
+# Szenen für Geräte-Kombinationen
+scene: !include scenes.yaml
+
+
+# =============================================================================
+# 📊 TEMPLATE-SENSOREN
+# =============================================================================
+
+# Lädt alle Template-Dateien aus dem templates/ Ordner
+template: !include_dir_merge_list templates/
+
+
+# =============================================================================
+# 📡 MQTT-SENSOREN
+# =============================================================================
+
+# MQTT-Konfiguration für externe Sensordaten
+mqtt: !include mqtt.yaml
+
+
+# =============================================================================
+# 📈 UTILITY METER - VERBRAUCHSMESSUNGEN
+# =============================================================================
+
+# Utility Meter für Energieverbrauchsmessungen
+utility_meter: !include utility_meters.yaml

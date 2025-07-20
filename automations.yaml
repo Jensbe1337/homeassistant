@@ -1,0 +1,506 @@
+- id: '1733333265668'
+  alias: Außenlicht ein
+  description: ''
+  triggers:
+  - trigger: sun
+    event: sunset
+    offset: 0
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 7537e9aa902b3dce338c1aa2b3e29491
+    entity_id: c3dfa6be490f8758b92724e5b88df2f1
+    domain: switch
+  mode: single
+- id: '1733333338353'
+  alias: Außenlicht aus
+  description: ''
+  triggers:
+  - trigger: sun
+    event: sunrise
+    offset: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 7537e9aa902b3dce338c1aa2b3e29491
+    entity_id: c3dfa6be490f8758b92724e5b88df2f1
+    domain: switch
+  mode: single
+- id: '1733434271625'
+  alias: Notification Waschmaschine 1
+  description: ''
+  use_blueprint:
+    path: sbyx/notify-or-do-something-when-an-appliance-like-a-dishwasher-or-washing-machine-finishes.yaml
+    input:
+      power_sensor: sensor.keller_waschmaschine_1_power
+      pre_actions:
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 1 wurde gestartet!
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 1 wurde gestartet!
+      actions:
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 1 ist fertig!
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 1 ist fertig!
+- id: '1733434365643'
+  alias: Notification Waschmaschine 2
+  description: ''
+  use_blueprint:
+    path: sbyx/notify-or-do-something-when-an-appliance-like-a-dishwasher-or-washing-machine-finishes.yaml
+    input:
+      power_sensor: sensor.keller_waschmaschine_2_power
+      pre_actions:
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 2 wurde gestartet!
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 2 wurde gestartet!
+      actions:
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 2 ist fertig!
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Waschmaschine 2 ist fertig!
+- id: '1733435180274'
+  alias: Notification Solar Ertrag
+  description: ''
+  triggers:
+  - trigger: sun
+    event: sunset
+    offset: 00:10:00
+  conditions: []
+  actions:
+  - action: notify.mobile_app_swisslog_iphone
+    metadata: {}
+    data:
+      message: Solarertrag heute {{ states('sensor.solar_ertrag_garage_heute')| float/1000
+        }} kWh.
+  mode: single
+- id: '1734190589313'
+  alias: Notification Spülmaschine
+  description: ''
+  use_blueprint:
+    path: sbyx/notify-or-do-something-when-an-appliance-like-a-dishwasher-or-washing-machine-finishes.yaml
+    input:
+      starting_hysteresis: 1
+      pre_actions:
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Spülmaschine gestartet!
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Spülmaschine gestartet!
+      power_sensor: sensor.kuche_spulmaschine_power
+      actions:
+      - action: notify.mobile_app_swisslog_iphone
+        metadata: {}
+        data:
+          message: Spülmaschine ist fertig!
+      - action: notify.mobile_app_julias_iphone
+        metadata: {}
+        data:
+          message: Spülmaschine ist fertig!
+      finishing_threshold: 5
+      finishing_hysteresis: 10
+      starting_threshold: 10
+- id: '1734248577683'
+  alias: STR Arbeitszimmer Yoga
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.yoga_mode
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.office_mode
+  - action: light.turn_on
+    metadata: {}
+    data:
+      kelvin: 2210
+      brightness_pct: 55
+    target:
+      device_id:
+      - 4689a9a8d2f40981b1d71608732bc81d
+      - 98894b55e1463b67c11208a3fa6352f7
+  - if:
+    - condition: numeric_state
+      entity_id: sensor.1og_arbeitszimmer_heizung_temperatur
+      below: 25
+    then:
+    - action: climate.turn_on
+      metadata: {}
+      data: {}
+      target:
+        entity_id: climate.arbeitszimmer
+    - action: climate.set_temperature
+      metadata: {}
+      data:
+        hvac_mode: heat
+        temperature: 22
+      target:
+        entity_id: climate.arbeitszimmer
+    - action: climate.set_fan_mode
+      metadata: {}
+      data:
+        fan_mode: '4'
+      target:
+        entity_id: climate.arbeitszimmer
+    - delay:
+        hours: 0
+        minutes: 5
+        seconds: 0
+        milliseconds: 0
+    - action: climate.set_fan_mode
+      metadata: {}
+      data:
+        fan_mode: auto
+      target:
+        entity_id: climate.arbeitszimmer
+    - delay:
+        hours: 0
+        minutes: 25
+        seconds: 0
+        milliseconds: 0
+    - action: climate.turn_off
+      metadata: {}
+      data: {}
+      target:
+        entity_id: climate.arbeitszimmer
+  mode: single
+- id: '1734249440671'
+  alias: STR Arbeitszimmer Homeoffice
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.office_mode
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.yoga_mode
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      temperature: 22
+    target:
+      area_id: arbeitszimmer
+  - action: light.turn_on
+    target:
+      device_id: 98894b55e1463b67c11208a3fa6352f7
+    data:
+      brightness_pct: 100
+      kelvin: 3799
+  - action: light.turn_on
+    data:
+      brightness_pct: 100
+      kelvin: 2750
+    target:
+      device_id: 4689a9a8d2f40981b1d71608732bc81d
+  mode: single
+- id: '1734251517984'
+  alias: Arbeitzimmer leer
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.office_mode
+    to: 'off'
+  - trigger: state
+    entity_id:
+    - input_boolean.yoga_mode
+    to: 'off'
+  conditions:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.office_mode
+      state: 'off'
+    - condition: state
+      entity_id: input_boolean.yoga_mode
+      state: 'off'
+  actions:
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+  - if:
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.office_mode
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.yoga_mode
+        state: 'off'
+    then:
+    - action: light.turn_off
+      metadata: {}
+      data: {}
+      target:
+        entity_id:
+        - light.ambiente
+        - light.schreibtisch_bloom
+    - if:
+      - condition: time
+        after: 05:00:00
+        before: '22:00:00'
+        weekday:
+        - sun
+        - sat
+        - fri
+        - thu
+        - wed
+        - tue
+        - mon
+      then:
+      - action: climate.set_temperature
+        metadata: {}
+        data:
+          temperature: 20
+        target:
+          device_id: 855ea9b2c95456722cb16df4c996d3a9
+      else:
+      - action: climate.set_temperature
+        metadata: {}
+        data:
+          temperature: 18
+        target:
+          device_id: 855ea9b2c95456722cb16df4c996d3a9
+  mode: single
+- id: '1743163702768'
+  alias: STR Terrarium
+  description: ''
+  triggers:
+  - trigger: time
+    at: 08:00:00
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 0270fa7b60c20b8b69148353e67e8cd1
+    entity_id: 70bd95946527dfe0350246466f121803
+    domain: switch
+    enabled: false
+  - sequence:
+    - delay:
+        hours: 0
+        minutes: 30
+        seconds: 0
+        milliseconds: 0
+    - type: turn_on
+      device_id: 13a3701c690a658c94214dca166b9f47
+      entity_id: 218be9e2bdc0ea2e8c5dfb4bf0a68038
+      domain: switch
+    - type: turn_off
+      device_id: 0270fa7b60c20b8b69148353e67e8cd1
+      entity_id: 70bd95946527dfe0350246466f121803
+      domain: switch
+  mode: single
+- id: '1743187470646'
+  alias: STR Terrarium Abends
+  description: ''
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 13a3701c690a658c94214dca166b9f47
+    entity_id: 218be9e2bdc0ea2e8c5dfb4bf0a68038
+    domain: switch
+  mode: single
+- id: '1751466742142'
+  alias: STR Erna laden bis 80%
+  description: ''
+  triggers:
+  - type: battery_level
+    device_id: 509b2b866d32503aa4be83437afa21a2
+    entity_id: d4731a7db6252ac904e74f3b1ee59bea
+    domain: sensor
+    trigger: device
+    above: 80
+  conditions:
+  - type: is_power
+    condition: device
+    device_id: a01de1ddf994f9ab39e8e8aaa6370a2d
+    entity_id: f076686081476c95693cc57ec917b676
+    domain: sensor
+    above: 500
+  actions:
+  - type: turn_off
+    device_id: a01de1ddf994f9ab39e8e8aaa6370a2d
+    entity_id: 6614e076ae1bd6dda52ca00f5da8cc49
+    domain: switch
+  - action: automation.turn_off
+    metadata: {}
+    data:
+      stop_actions: false
+    target:
+      entity_id: automation.str_erna_laden_bis_80
+  mode: single
+- id: '1751467388933'
+  alias: STR Auto-off mobile Wallbox
+  description: ''
+  triggers:
+  - type: power
+    device_id: a01de1ddf994f9ab39e8e8aaa6370a2d
+    entity_id: f076686081476c95693cc57ec917b676
+    domain: sensor
+    trigger: device
+    below: 50
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: a01de1ddf994f9ab39e8e8aaa6370a2d
+    entity_id: 6614e076ae1bd6dda52ca00f5da8cc49
+    domain: switch
+  mode: single
+- id: '1752820753054'
+  alias: STR Solarladen Erna
+  description: Schaltet die Wallbox ein, wenn Solarladen aktiviert ist und der Stromzähler
+    im Schnitt -1000 W oder weniger anzeigt. Schaltet die Wallbox aus, wenn eine der
+    Abschaltbedingungen erfüllt ist.
+  triggers:
+  - seconds: /30
+    trigger: time_pattern
+  conditions:
+  - condition: state
+    entity_id: input_boolean.solarladen_erna
+    state: 'on'
+  - condition: template
+    value_template: "{% set avg = states('sensor.stromzaehler_leistung_aktuell') |
+      float(0) %} {% set history = state_attr('sensor.stromzaehler_leistung_aktuell',
+      'history') %} {% if history %}\n  {% set mean = (history[-10:] | map(attribute='state')
+      | map('float') | sum) / (history[-10:] | count) %}\n  {{ mean <= -1000 }}\n{%
+      else %}\n  {{ avg <= -1000 }}\n{% endif %}\n"
+  actions:
+  - choose:
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.garage_mobile_wallbox_switch_0_power
+          below: 50
+        - condition: template
+          value_template: "{% set avg = states('sensor.stromzaehler_leistung_aktuell')
+            | float(0) %} {% set history = state_attr('sensor.stromzaehler_leistung_aktuell',
+            'history') %} {% if history %}\n  {% set mean = (history[-10:] | map(attribute='state')
+            | map('float') | sum) / (history[-10:] | count) %}\n  {{ mean > 1000 }}\n{%
+            else %}\n  {{ avg > 1000 }}\n{% endif %}\n"
+        - condition: numeric_state
+          entity_id: sensor.erna_battery_level
+          above: 80
+      sequence:
+      - target:
+          entity_id: switch.garage_mobile_wallbox_switch_0
+        action: switch.turn_off
+    - conditions: []
+      sequence:
+      - target:
+          entity_id: switch.garage_mobile_wallbox_switch_0
+        action: switch.turn_on
+  mode: single
+- id: '1752961679193'
+  alias: STR Badezimmerlicht Automatik
+  description: Schaltet das Licht im Bad abhängig vom Präsenzmelder ein und aus und
+    stellt die Helligkeit je nach Tageszeit ein.
+  triggers:
+  - entity_id: binary_sensor.1og_bad_praesenzmelder_anwesenheit
+    to: 'on'
+    trigger: state
+  - entity_id: binary_sensor.1og_bad_praesenzmelder_anwesenheit
+    to: 'off'
+    for:
+      seconds: 15
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.1og_bad_praesenzmelder_anwesenheit
+        state: 'on'
+      sequence:
+      - target:
+          entity_id: light.1og_bad_fdt
+        action: light.turn_on
+        data: {}
+      - choose:
+        - conditions:
+          - condition: time
+            after: 06:00:00
+            before: '23:00:00'
+          sequence:
+          - target:
+              entity_id: sensor.1og_bad_fdt_helligkeit_ch1
+            data:
+              value: 70
+            action: number.set_value
+        - conditions:
+          - condition: or
+            conditions:
+            - condition: time
+              after: '23:00:00'
+            - condition: time
+              before: 06:00:00
+          sequence:
+          - target:
+              entity_id: sensor.1og_bad_fdt_helligkeit_ch1
+            data:
+              value: 30
+            action: number.set_value
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.1og_bad_praesenzmelder_anwesenheit
+        state: 'off'
+      sequence:
+      - target:
+          entity_id: light.1og_bad_fdt
+        action: light.turn_off
+        data: {}
+  mode: single
+- id: '1753018680693'
+  alias: GIT Test
+  description: ''
+  triggers:
+  - device_id: fdd5a8a85788d35823dd2a983da2ddeb
+    domain: climate
+    entity_id: d8ac56cfe6915f6cca7d149cba10ae07
+    type: hvac_mode_changed
+    trigger: device
+    to: 'off'
+  conditions: []
+  actions: []
+  mode: single

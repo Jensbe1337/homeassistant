@@ -1,0 +1,40 @@
+# =============================================================================
+# 📈 UTILITY METER - VERBRAUCHSMESSUNGEN
+# =============================================================================
+#
+# Zentrale Konfiguration für alle Utility Meter
+# Misst Energieverbrauch über verschiedene Zeiträume
+#
+# =============================================================================
+
+# 📊 WALLBOX VERBRAUCHSMESSUNG
+# =============================================================================
+
+# 📊 MONATLICHE VERBRAUCHSMESSUNG
+# --------------------------------
+
+# Aktueller Monat - Wallbox Energieverbrauch
+garage_wallbox_energy_monthly:
+  source: sensor.garage_mobile_wallbox_switch_0_energy
+  cycle: monthly
+  
+# Letzter Monat - Wallbox Energieverbrauch (Vergleichswert)
+garage_wallbox_energy_last_month:
+  source: sensor.garage_mobile_wallbox_switch_0_energy
+  cycle: monthly
+  offset: 1
+  
+  
+# 📊 JÄHRLICHE VERBRAUCHSMESSUNG  
+# -------------------------------
+
+# Aktuelles Jahr - Wallbox Energieverbrauch
+garage_wallbox_energy_yearly:
+  source: sensor.garage_mobile_wallbox_switch_0_energy
+  cycle: yearly
+  
+# Letztes Jahr - Wallbox Energieverbrauch (Vergleichswert)
+garage_wallbox_energy_last_year:
+  source: sensor.garage_mobile_wallbox_switch_0_energy
+  cycle: yearly
+  offset: 1

@@ -1,0 +1,24 @@
+# =============================================================================
+# MQTT-SENSOREN (Solardaten via MQTT)
+# =============================================================================
+sensor:
+  # Aktuelle Solarleistung der Garage (Hoymiles-DTU)
+  - name: "Solar Leistung Garage aktuell"
+    state_topic: "Garage-Solar/Garage/ch0/P_AC"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+
+  # Tagesertrag der Garage (Hoymiles-DTU)
+  - name: "Solar Ertrag Garage heute"
+    state_topic: "Garage-Solar/total/YieldDay"
+    device_class: energy
+    state_class: total
+    unit_of_measurement: Wh
+
+  # Gesamtertrag der Garage (Hoymiles-DTU)
+  - name: "Solar Ertrag Garage total"
+    state_topic: "Garage-Solar/total/YieldTotal"
+    device_class: energy
+    state_class: total
+    unit_of_measurement: kWh
