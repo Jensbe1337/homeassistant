@@ -9,7 +9,13 @@
       device_class: energy
       state_class: total
       state: >
-        {{ states('sensor.stromzahler_e320_total_out') | float(0) }}
+        {% set current_value = states('sensor.stromzahler_e320_total_out') | float(0) %}
+        {% set previous_value = states('sensor.stromzaehler_energie_einspeisung_total') | float(0) %}
+        {% if current_value >= previous_value %}
+          {{ current_value }}
+        {% else %}
+          {{ previous_value }}
+        {% endif %}
 
     - name: "Stromzaehler Energie Netz total"
       unique_id: stromzaehler_energie_netze_total
@@ -17,7 +23,13 @@
       device_class: energy
       state_class: total
       state: >
-        {{ states('sensor.stromzahler_e320_total_in') | float(0) }}
+        {% set current_value = states('sensor.stromzahler_e320_total_in') | float(0) %}
+        {% set previous_value = states('sensor.stromzaehler_energie_netz_total') | float(0) %}
+        {% if current_value >= previous_value %}
+          {{ current_value }}
+        {% else %}
+          {{ previous_value }}
+        {% endif %}
 
     - name: "Stromzaehler Leistung aktuell"
       unique_id: stromzaehler_leistung_aktuell
@@ -25,7 +37,16 @@
       device_class: power
       state_class: measurement
       state: >
-        {{ states('sensor.stromzahler_e320_power_in') | float(0) }}
+        {% set primary_sensor = 'sensor.stromzahler_e320_power_in' %}
+        {% set backup_sensor = 'sensor.shellypro3em_fce8c0dbbb1c_total_active_power' %}
+        {% set primary_state = states(primary_sensor) %}
+        {% set primary_age = (now() - states.sensor.stromzahler_e320_power_in.last_updated).total_seconds() if states.sensor.stromzahler_e320_power_in.last_updated else 9999 %}
+        
+        {% if primary_state not in ['unknown', 'unavailable', 'none'] and primary_state | float(none) is not none and primary_age < 5 %}
+          {{ primary_state | float(0) }}
+        {% else %}
+          {{ states(backup_sensor) | float(0) }}
+        {% endif %}
 
     # -----------------------------------------------------------------------
     # Heizungs-Thermostate: Soll-Temperaturen für verschiedene Räume
