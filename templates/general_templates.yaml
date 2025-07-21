@@ -28,6 +28,30 @@
         {{ states('sensor.stromzahler_e320_power_in') | float(0) }}
 
     # -----------------------------------------------------------------------
+    # Durchschnittswerte der letzten 10 Minuten
+    # -----------------------------------------------------------------------
+    - name: "Stromzaehler Leistung Durchschnitt 10min"
+      unique_id: stromzaehler_leistung_durchschnitt_10min
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      state: >
+        {# Berechnet die durchschnittliche Leistung der letzten 10 Minuten #}
+        {# Positive Werte = Netzbezug, Negative Werte = Einspeisung #}
+        {% set history = states.sensor.stromzaehler_leistung_aktuell.history(hours=0, minutes=10) %}
+        {% set values = [] %}
+        {% for state in history %}
+          {% if state.state not in ['unavailable', 'unknown', 'none'] and state.state is number %}
+            {% set _ = values.append(state.state | float) %}
+          {% endif %}
+        {% endfor %}
+        {% if values | length > 0 %}
+          {{ (values | sum / values | length) | round(1) }}
+        {% else %}
+          {{ states('sensor.stromzaehler_leistung_aktuell') | float(0) }}
+        {% endif %}
+
+    # -----------------------------------------------------------------------
     # Heizungs-Thermostate: Soll-Temperaturen für verschiedene Räume
     # -----------------------------------------------------------------------
     - name: "EG Wohnzimmer Heizung Soll-Temperatur"
