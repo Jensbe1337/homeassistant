@@ -407,14 +407,9 @@
         - condition: numeric_state
           entity_id: sensor.garage_mobile_wallbox_switch_0_power
           below: 50
-        - condition: template
-          value_template: "{% set history = states.sensor.stromzaehler_leistung_aktuell.history(hours=0, minutes=10) %}
-            {% if history | length > 0 %}
-              {% set avg = history | map(attribute='state') | map('float', 0) | list | average %}
-              {{ avg > 1000 }}
-            {% else %}
-              {{ states('sensor.stromzaehler_leistung_aktuell') | float(0) > 1000 }}
-            {% endif %}"
+        - condition: numeric_state
+          entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
+          above: 1000
         - condition: numeric_state
           entity_id: sensor.erna_battery_level
           above: 80
@@ -423,14 +418,9 @@
           entity_id: switch.garage_mobile_wallbox_switch_0
         action: switch.turn_off
     - conditions:
-      - condition: template
-        value_template: "{% set history = states.sensor.stromzaehler_leistung_aktuell.history(hours=0, minutes=10) %}
-          {% if history | length > 0 %}
-            {% set avg = history | map(attribute='state') | map('float', 0) | list | average %}
-            {{ avg < -1500 }}
-          {% else %}
-            {{ states('sensor.stromzaehler_leistung_aktuell') | float(0) < -1500 }}
-          {% endif %}"
+      - condition: numeric_state
+        entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
+        below: -1500
       sequence:
       - target:
           entity_id: switch.garage_mobile_wallbox_switch_0
