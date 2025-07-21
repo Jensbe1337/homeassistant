@@ -389,11 +389,11 @@
   mode: single
 - id: '1752820753054'
   alias: STR Solarladen Erna
-  description: Schaltet die Wallbox ein, wenn Solarladen aktiviert ist und der Durchschnitt
-    der letzten 10 Minuten genügend Solarüberschuss zeigt. Schaltet ab bei zu geringem
-    Überschuss, vollem Akku oder wenn kein Auto lädt.
+  description: Intelligente Solarladung für Erna mit dynamischer Leistungsregelung.
+    Startet bei genügend Solarüberschuss, regelt die Ladeleistung je nach verfügbarer
+    Solarenergie und stoppt bei vollem Akku.
   triggers:
-  - seconds: /30
+  - seconds: 0
     trigger: time_pattern
   conditions:
   - condition: state
@@ -401,46 +401,74 @@
     state: 'on'
   actions:
   - choose:
+    # Stoppe das Laden wenn Akku voll ist oder zu viel Strom bezogen wird
     - conditions:
       - condition: or
         conditions:
         - condition: numeric_state
-          entity_id: sensor.garage_mobile_wallbox_switch_0_power
-          below: 50
+          entity_id: sensor.erna_battery_level
+          above: 80
         - condition: numeric_state
           entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
           above: 1000
-        - condition: numeric_state
-          entity_id: sensor.erna_battery_level
-          above: 80
       sequence:
       - target:
           entity_id: switch.garage_mobile_wallbox_switch_0
         action: switch.turn_off
+      - target:
+          entity_id: switch.erna_reduced_ac_charging
+        action: switch.turn_off
+    # Starte das Laden mit voller Leistung bei hohem Solarüberschuss
     - conditions:
       - condition: numeric_state
         entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
         below: -1500
+      - condition: numeric_state
+        entity_id: sensor.erna_battery_level
+        below: 80
       sequence:
       - target:
           entity_id: switch.garage_mobile_wallbox_switch_0
         action: switch.turn_on
-      - action: automation.turn_off
-        metadata: {}
-        data:
-          stop_actions: false
-        target:
-          entity_id: automation.str_solarladen_erna
-      - delay:
-          hours: 0
-          minutes: 10
-          seconds: 0
-          milliseconds: 0
-      - action: automation.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: automation.str_solarladen_erna
+      - target:
+          entity_id: switch.erna_reduced_ac_charging
+        action: switch.turn_off
+    # Reduziere Ladeleistung wenn während des Ladens Strom bezogen wird
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
+        above: 0
+      - condition: numeric_state
+        entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
+        below: 1000
+      - condition: numeric_state
+        entity_id: sensor.erna_battery_level
+        below: 80
+      - condition: numeric_state
+        entity_id: sensor.garage_mobile_wallbox_switch_0_power
+        above: 50
+      sequence:
+      - target:
+          entity_id: switch.erna_reduced_ac_charging
+        action: switch.turn_on
+    # Erhöhe Ladeleistung wieder bei ausreichend Solarüberschuss
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.stromzaehler_leistung_durchschnitt_10min
+        below: -1000
+      - condition: numeric_state
+        entity_id: sensor.erna_battery_level
+        below: 80
+      - condition: numeric_state
+        entity_id: sensor.garage_mobile_wallbox_switch_0_power
+        above: 50
+      - condition: state
+        entity_id: switch.erna_reduced_ac_charging
+        state: 'on'
+      sequence:
+      - target:
+          entity_id: switch.erna_reduced_ac_charging
+        action: switch.turn_off
   mode: single
 - id: '1752961679193'
   alias: STR Badezimmerlicht Automatik
