@@ -26,6 +26,10 @@ default_config:
 # Python Script Integration für benutzerdefinierte Python-Skripte
 python_script:
 
+# Logger-Konfiguration
+logger:
+  default: info
+
 
 # =============================================================================
 # 🎨 FRONTEND & THEMES
