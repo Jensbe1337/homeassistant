@@ -77,15 +77,38 @@ Entitäten:
 - sensor.garage_mobile_wallbox_switch_0_power: Aktuelle Wallbox-Leistung (W)
 """
 
-# Abrufen der aktuellen Sensordaten
-solarladen_enabled = hass.states.get('input_boolean.solarladen_erna').state == 'on'
-battery_level = float(hass.states.get('sensor.erna_battery_level').state)
-power_avg_10min = float(hass.states.get('sensor.stromzaehler_leistung_durchschnitt_10min').state)
-wallbox_power = float(hass.states.get('sensor.garage_mobile_wallbox_switch_0_power').state)
-wallbox_switch_state = hass.states.get('switch.garage_mobile_wallbox_switch_0').state
-reduced_charging_state = hass.states.get('switch.erna_reduced_ac_charging').state
+# Logging-Test: Skript wurde gestartet
+logger.info("=== Solarladen Erna Skript gestartet ===")
 
-logger.info(f"Solarladen Erna - Status: enabled={solarladen_enabled}, battery={battery_level}%, power_avg={power_avg_10min}W, wallbox_power={wallbox_power}W")
+# Abrufen der aktuellen Sensordaten mit Fehlerbehandlung
+try:
+    # Prüfen ob alle benötigten Entitäten verfügbar sind
+    solarladen_state = hass.states.get('input_boolean.solarladen_erna')
+    battery_state = hass.states.get('sensor.erna_battery_level')
+    power_state = hass.states.get('sensor.stromzaehler_leistung_durchschnitt_10min')
+    wallbox_power_state = hass.states.get('sensor.garage_mobile_wallbox_switch_0_power')
+    wallbox_switch_state_obj = hass.states.get('switch.garage_mobile_wallbox_switch_0')
+    reduced_charging_state_obj = hass.states.get('switch.erna_reduced_ac_charging')
+    
+    # Prüfen ob alle Entitäten existieren
+    if not all([solarladen_state, battery_state, power_state, wallbox_power_state, wallbox_switch_state_obj, reduced_charging_state_obj]):
+        logger.error("Solarladen Erna - Eine oder mehrere Entitäten sind nicht verfügbar!")
+        logger.error(f"Verfügbare Entitäten: solarladen={bool(solarladen_state)}, battery={bool(battery_state)}, power={bool(power_state)}, wallbox_power={bool(wallbox_power_state)}, wallbox_switch={bool(wallbox_switch_state_obj)}, reduced_charging={bool(reduced_charging_state_obj)}")
+        exit()
+    
+    # Werte extrahieren und konvertieren
+    solarladen_enabled = solarladen_state.state == 'on'
+    battery_level = float(battery_state.state)
+    power_avg_10min = float(power_state.state)
+    wallbox_power = float(wallbox_power_state.state)
+    wallbox_switch_state = wallbox_switch_state_obj.state
+    reduced_charging_state = reduced_charging_state_obj.state
+    
+    logger.info(f"Solarladen Erna - Status: enabled={solarladen_enabled}, battery={battery_level}%, power_avg={power_avg_10min}W, wallbox_power={wallbox_power}W")
+    
+except Exception as e:
+    logger.error(f"Solarladen Erna - Fehler beim Abrufen der Sensordaten: {e}")
+    exit()
 
 # Prüfen ob Solarladung aktiviert ist
 if not solarladen_enabled:
@@ -123,3 +146,6 @@ else:
     
     else:
         logger.debug(f"Keine Aktion erforderlich - Aktueller Status beibehalten")
+
+# Skript erfolgreich beendet
+logger.info("=== Solarladen Erna Skript beendet ===")

@@ -30,6 +30,7 @@ python_script:
 logger:
   default: info
   logs:
+    # Debug-Level für alle Python-Skripte (zeigt detaillierte Ausführungsinformationen)
     homeassistant.components.python_script: debug
 
 
