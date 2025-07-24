@@ -29,6 +29,8 @@ python_script:
 # Logger-Konfiguration
 logger:
   default: info
+  logs:
+    homeassistant.components.python_script: debug
 
 
 # =============================================================================
