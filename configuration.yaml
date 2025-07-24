@@ -23,6 +23,9 @@
 # Lädt alle Standard-Home Assistant Integrationen
 default_config:
 
+# Python Script Integration für benutzerdefinierte Python-Skripte
+python_script:
+
 
 # =============================================================================
 # 🎨 FRONTEND & THEMES
