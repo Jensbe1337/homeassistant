@@ -37,3 +37,21 @@ esphome/.esphome/
 esphome/
 *.bin
 *.elf
+
+# Blueprints
+blueprints/
+
+# Custom Components
+custom_components/
+
+# HomematicIP Local
+homematicip_local/
+
+# WWW directory
+www/
+
+# Solcast integration files
+solcast-sites.json
+solcast-undampened.json
+solcast.json
+solcast-usage.json
