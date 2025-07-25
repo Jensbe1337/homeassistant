@@ -13,11 +13,13 @@
 # - Stopp bei vollem Akku (> 80%) oder zu hohem Strombezug (> 1000W)
 # - Reduzierte Ladeleistung bei geringem Solarüberschuss
 # - Intelligente Wiederherstellung der vollen Ladeleistung
+# - Automatische Deaktivierung bei zu geringer Wallbox-Leistung (< 50W)
 #
 # VERWENDUNG:
 # 1. Skript in Home Assistant python_scripts Ordner speichern
-# 2. Über Automation zeitbasiert aufrufen (empfohlen: jede Minute)
-# 3. Oder manuell über Service: python_script.solarladen_erna
+# 2. Debug-Logging bei Bedarf durch Setzen von DEBUG_LOGGING = False deaktivieren
+# 3. Über Automation zeitbasiert aufrufen (empfohlen: jede Minute)
+# 4. Oder manuell über Service: python_script.solarladen_erna
 #
 # BEISPIEL AUTOMATION FÜR ZEITBASIERTE AUSFÜHRUNG:
 # automation:
@@ -46,6 +48,7 @@
 # 3. Start-Bedingungen: Solarüberschuss < -1500W UND Akku < 80%
 # 4. Reduzierung: Strombezug 0-1000W während Ladung aktiv
 # 5. Erhöhung: Solarüberschuss < -1000W bei reduzierter Ladung
+# 6. Deaktivierung: Wallbox-Leistung < 50W bei eingeschalteter Wallbox (schaltet Wallbox aus und deaktiviert input_boolean)
 #
 # SCHWELLENWERTE:
 # - Akku-Maximum: 80%
@@ -53,7 +56,7 @@
 # - Start-Schwelle: -1500W Solarüberschuss
 # - Reduzierungs-Schwelle: 0-1000W Strombezug
 # - Erhöhungs-Schwelle: -1000W Solarüberschuss
-# - Mindest-Wallbox-Leistung: 50W (für aktive Ladung)
+# - Mindest-Wallbox-Leistung: 50W (für aktive Ladung und Deaktivierungs-Schwelle)
 #
 # AUTOR: Home Assistant Benutzer
 # VERSION: 1.0
@@ -67,6 +70,7 @@ Dieses Skript ersetzt die Automation "STR Solarladen Erna" und implementiert:
 - Start bei genügend Solarüberschuss
 - Dynamische Leistungsregelung je nach verfügbarer Solarenergie
 - Stopp bei vollem Akku oder zu hohem Strombezug
+- Automatische Deaktivierung bei zu geringer Wallbox-Leistung
 
 Entitäten:
 - input_boolean.solarladen_erna: Master-Schalter für die Solarladung
@@ -78,6 +82,9 @@ Entitäten:
 """
 
 # Logging-Test: Skript wurde gestartet
+# Konfiguration für Debug-Logging (True = aktiviert, False = deaktiviert)
+DEBUG_LOGGING = True
+
 logger.info("=== Solarladen Erna Skript gestartet ===")
 
 # Abrufen der aktuellen Sensordaten mit Fehlerbehandlung
@@ -105,6 +112,9 @@ try:
     reduced_charging_state = reduced_charging_state_obj.state
     
     logger.info(f"Solarladen Erna - Status: enabled={solarladen_enabled}, battery={battery_level}%, power_avg={power_avg_10min}W, wallbox_power={wallbox_power}W")
+    
+    if DEBUG_LOGGING:
+        logger.debug(f"Solarladen Erna - Detailstatus: wallbox_switch={wallbox_switch_state}, reduced_charging={reduced_charging_state}")
     
 except Exception as e:
     logger.error(f"Solarladen Erna - Fehler beim Abrufen der Sensordaten: {e}")
@@ -144,8 +154,15 @@ else:
         logger.info(f"Erhöhe Ladeleistung: Solarüberschuss={abs(power_avg_10min)}W ausreichend")
         hass.services.call('switch', 'turn_off', {'entity_id': 'switch.erna_reduced_ac_charging'})
     
+    # 5. Schalte Wallbox aus und deaktiviere Solarladung bei zu geringer Leistung
+    elif wallbox_power < 50 and wallbox_switch_state == 'on':
+        logger.info(f"Stoppe Ladung und deaktiviere Solarladung: Wallbox-Leistung zu gering ({wallbox_power}W < 50W)")
+        hass.services.call('switch', 'turn_off', {'entity_id': 'switch.garage_mobile_wallbox_switch_0'})
+        hass.services.call('input_boolean', 'turn_off', {'entity_id': 'input_boolean.solarladen_erna'})
+    
     else:
-        logger.debug(f"Keine Aktion erforderlich - Aktueller Status beibehalten")
+        if DEBUG_LOGGING:
+            logger.debug(f"Keine Aktion erforderlich - Aktueller Status beibehalten")
 
 # Skript erfolgreich beendet
 logger.info("=== Solarladen Erna Skript beendet ===")
